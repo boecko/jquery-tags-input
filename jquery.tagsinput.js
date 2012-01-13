@@ -18,9 +18,11 @@
 
 	var delimiter = new Array();
 	
-	jQuery.fn.addTag = function(value,options) {
-		var settings = $(this).data('settings');
+	jQuery.fn.addTag = function(value,options,remove) {
+		    var remove = remove || false;
+			var settings = $(this).data('settings');
 			var options = jQuery.extend({focus:false},options);
+			if(!remove && !settings.beforeAddTag(value)) return false;
 			this.each(function() { 
 				id = $(this).attr('id');
 	
@@ -53,12 +55,12 @@
 				jQuery.fn.tagsInput.updateTagsField(this,tagslist);
 		
 			});		
-			
+			if(!remove) settings.afterAddTag(value);
 			return false;
 		};
 		
 	jQuery.fn.removeTag = function(value) { 
-			
+			var settings = $(this).data('settings');
 			this.each(function() { 
 				id = $(this).attr('id');
 	
@@ -77,10 +79,9 @@
 						str = str + delimiter[id] +old[i];
 					}
 				}
-				
 				jQuery.fn.tagsInput.importTags(this,str);
 			});
-					
+			settings.afterRemoveTag(value);
 			return false;
 	
 		};
@@ -89,7 +90,11 @@
 	jQuery.fn.tagsInput = function(options) { 
 	
 		var settings = jQuery.extend({defaultText:'add a tag',width:'300px',height:'100px','hide':true,'delimiter':',',
-									  onlyAutocomplete : false, tooltipGenerator : function(v) { return null },
+									  onlyAutocomplete : false, 
+									  tooltipGenerator : function(v) { return null }, 
+									  beforeAddTag : function(v){ return true },
+									  afterAddTag : function(v){ return null },
+									  afterRemoveTag : function(v){ return null },
 									  autocomplete:{selectFirst:false}},
 									 options);
 		$(this).data('settings',settings);
@@ -206,14 +211,12 @@
 		$(obj).val(text);
 	};
 	
-	
-	
 	jQuery.fn.tagsInput.importTags = function(obj,val) {
 			$(obj).val('');
 			id = $(obj).attr('id');
 			var tags = val.split(delimiter[id]);
 			for (i=0; i<tags.length; i++) { 
-				$(obj).addTag(tags[i],{focus:false});
+				$(obj).addTag(tags[i],{focus:false},true);
 			}
 		};
 			
